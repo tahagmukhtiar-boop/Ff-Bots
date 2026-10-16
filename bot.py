@@ -1,42 +1,38 @@
+import os
+import telebot
 import requests
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔥 Free Fire Bot Live!\n\nCommands:\n👉 /like ind <UID>\n👉 /visit ind <UID>")
+TOKEN = "8913640665:AAFPOiEhLsZl-n4kpJ74rtmzSB_7ffytyw8"
+bot = telebot.TeleBot(TOKEN)
 
-async def like_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args
-    if len(args) < 2:
-        await update.message.reply_text("Sahi tareeqa: /like ind <UID>")
-        return
-    region, uid = args[0], args[1]
-    await update.message.reply_text(f"✅ Likes sent successfully to UID: {uid}")
-
-async def visit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args
-    if len(args) < 2:
-        await update.message.reply_text("Sahi tareeqa: /visit ind <UID>")
-        return
-    region, uid = args[0], args[1]
-    await update.message.reply_text(
-        f"✅ Request Processed Successfully\n\n"
-        f"👤 Player Name: FF_Player\n"
-        f"⭐ Level: 60\n"
-        f"🌍 Region: {region.upper()}\n"
-        f"📊 Success: 10\n"
-        f"❌ Failed: 0\n"
-        f"🔥 Token Used: 1\n"
-        f"👀 Remaining Visits: 99"
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    welcome_text = (
+        "🔥 Free Fire Bot Live!\n\n"
+        "Commands:\n"
+        "👉 /like ind <UID>\n"
+        "👉 /visit ind <UID>"
     )
+    bot.reply_to(message, welcome_text)
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token("8913640665:AAFPOiEhLsZl-n4kpJ74rtmzSB_7ffytyw8").build()
+@bot.message_handler(commands=['like', 'visit'])
+def handle_ff_actions(message):
+    try:
+        parts = message.text.split()
+        if len(parts) < 3:
+            bot.reply_to(message, "Sahi tareeqa use karein: /like ind <UID> ya /visit ind <UID>")
+            return
+        
+        command = parts[0][1:]
+        region = parts[1]
+        uid = parts[2]
+
+        bot.reply_to(message, f"Aapki request process ho rahi hai...\nCommand: {command}\nRegion: {region}\nUID: {uid}")
+        
+        # Yahan aap apna Free Fire API endpoint ya request add kar sakte hain jo likes/visits bhejega.
+        
+    except Exception as e:
+        bot.reply_to(message, f"Error aa gaya: {str_err := str(e)}")
+
+bot.infinity_polling()
     
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("like", like_command))
-    app.add_handler(CommandHandler("visit", visit_command))
-    
-    print("Bot is running...")
-    app.run_polling()
-  
